@@ -1,0 +1,32 @@
+﻿<Button x:Class="EmotionPlayer.Controls.PathButton"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:local="clr-namespace:EmotionPlayer.Controls"
+        mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800" 
+        PreviewMouseDown="Button_PreviewMouseDown"
+        PreviewMouseUp="Button_PreviewMouseUp"
+        MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"
+        Loaded="Button_Loaded"
+        Background="{x:Null}" BorderBrush="{x:Null}"
+        Cursor="Hand" x:Name="button">
+    <Button.Template>
+        <ControlTemplate TargetType="{x:Type local:PathButton}">
+            <Border 
+                    Background="Transparent"
+                    Height="{TemplateBinding Height}"
+                    Width="{TemplateBinding Width}">
+
+                <ContentPresenter   
+                    Margin="{TemplateBinding Padding}">
+                    <ContentPresenter.Content>
+                        <Path Name="buttonPath" Data="{TemplateBinding Data}" 
+                              Stretch="{TemplateBinding Stretch}" 
+                              Fill="{TemplateBinding Foreground}"/>
+                    </ContentPresenter.Content>
+                </ContentPresenter>
+            </Border>
+        </ControlTemplate>
+    </Button.Template>
+</Button>

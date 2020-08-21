@@ -1,0 +1,205 @@
+﻿<Window x:Class="EmotionPlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EmotionPlayer"
+        xmlns:controls="clr-namespace:EmotionPlayer.Controls"
+        mc:Ignorable="d"
+        Title="EmotionPlayer" Height="416" Width="612"
+        Style="{DynamicResource WindowStyle}" MinWidth="612" MinHeight="416" ResizeMode="CanResize" Closing="Window_Closed"
+        MouseDoubleClick="Window_MouseDoubleClick" KeyDown="Window_KeyDown" PreviewKeyDown="Window_PreviewKeyDown" 
+        MouseMove="Window_MouseMove" KeyUp="Window_KeyUp" StateChanged="Window_StateChanged">
+    <Grid Background="#FF232323" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="132"/>
+        </Grid.RowDefinitions>
+        <MediaElement x:Name="mediaElement"  Grid.RowSpan="3" LoadedBehavior="Manual" ScrubbingEnabled="True"
+                      MediaEnded="MediaElement_MediaEnded" Loaded="MediaElement_Loaded" MediaOpened="mediaElement_MediaOpened"
+                      PreviewMouseDown="mediaElement_PreviewMouseDown"/>
+        <Image x:Name="currentEmotion" Source="/Resources/clean.png" Width="35" Height="35" />
+
+        <Rectangle x:Name="EmptyEl" Height="0" Width="0" Focusable="True" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+
+        <Grid x:Name="header" Style="{DynamicResource BarStyle}" Background="{DynamicResource BarBrush}"
+              MouseLeftButtonDown="headerBar_PreviewMouseLeftButtonDown">
+            <Button Style="{DynamicResource TextButtonStyle}" Content="Files"  
+                    BorderThickness="0" Foreground="White" HorizontalAlignment="Left" Width="75" TextElement.FontSize="14" 
+                    Margin="15,0,0,0" Background="{DynamicResource OverBrushTansp}" Click="fileButt_Click"/>
+
+            <Button Style="{DynamicResource TextButtonStyle}" Content="MPAA Content Rating"  
+                    BorderThickness="0" Foreground="White" HorizontalAlignment="Left" Width="140" TextElement.FontSize="14" 
+                    Margin="98,0,0,0" Background="{DynamicResource OverBrushTansp}" Click="rateButt_Click"/>
+
+            <Button Style="{DynamicResource TextButtonStyle}" Content="About" BorderThickness="0"
+                        Foreground="White" HorizontalAlignment="Left" Width="75" TextElement.FontSize="14" Margin="243,0,0,0"
+                        Background="{DynamicResource OverBrushTansp}" Click="Button_Click_8"/>
+
+            <controls:PathButton 
+                Style="{DynamicResource PathButtonStyle}"
+                Width="19" Height="19"
+                Margin="0,0,20,0" Click="Button_Click_5"
+                HorizontalAlignment="Right" VerticalAlignment="Center">
+                <controls:PathButton.Data>
+                    <GeometryGroup FillRule="Nonzero">
+                        <PathGeometry Figures="M26.9 23a2 2 0 0 1-1.4-.6l-6.9-6.9a2 2 0 0 1 0-2.8 2 2 0 0 1 2.8 0l6.9 6.9c.8.8.8 2 0 2.8a2 2 0 0 1-1.4.6z"/>
+                        <PathGeometry Figures="M20 23a2 2 0 0 1-1.4-.6 2 2 0 0 1 0-2.8l6.9-6.9a2 2 0 0 1 2.8 0c.8.8.8 2 0 2.8l-6.9 6.9a2 2 0 0 1-1.4.6z"/>
+                    </GeometryGroup>
+                </controls:PathButton.Data>
+            </controls:PathButton>
+
+            <controls:PathButton 
+                Style="{DynamicResource PathButtonStyle}"
+                x:Name="maxButt" HorizontalAlignment="Right" 
+                Width="20" Click="MaximizeButton_Click"
+                Margin="0,0,47,0" Height="20" VerticalAlignment="Center"
+                Data="{DynamicResource toMax}">
+                <controls:PathButton.Resources>
+                    <GeometryGroup x:Key="toMax" FillRule="EvenOdd">
+                        <RectangleGeometry Rect="0,0 16,16"/>
+                        <RectangleGeometry Rect="2,5 12,9"/>
+                    </GeometryGroup>
+                    <GeometryGroup x:Key="toNormal" FillRule="Nonzero">
+                        <RectangleGeometry Rect="0,9 16,5"/>
+                        <RectangleGeometry Rect="0,9 2,15"/>
+                        <RectangleGeometry Rect="0,22 16,2"/>
+                        <RectangleGeometry Rect="14,9 2,15"/>
+
+                        <RectangleGeometry Rect="10,0 16,5"/>
+                        <RectangleGeometry Rect="10,0 2,9"/>
+                        <RectangleGeometry Rect="16,13 10,2"/>
+                        <RectangleGeometry Rect="24,0 2,15"/>
+                    </GeometryGroup>
+                </controls:PathButton.Resources>
+            </controls:PathButton>
+
+            <controls:PathButton 
+                Style="{DynamicResource PathButtonStyle}"
+                HorizontalAlignment="Right" Width="20" 
+                Margin="0,0,73,0"
+                Height="19" VerticalAlignment="Center"
+                Padding="2,12,2,0" Click="Button_Click_6">
+                <controls:PathButton.Data>
+                    <RectangleGeometry Rect="0,0 16,4"/>
+                </controls:PathButton.Data>
+            </controls:PathButton>
+        </Grid>
+
+        <Grid x:Name="fullBar" Grid.Row="2" Grid.RowSpan="2" Style="{DynamicResource BarStyle}" MouseEnter="fullBar_MouseEnter" MouseLeave="fullBar_MouseLeave">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="82"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="bar" Grid.Row="1" Background="{DynamicResource BarBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="129"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="114"/>
+                </Grid.ColumnDefinitions>
+                <controls:PathButton 
+                    Style="{DynamicResource PathButtonStyle}"
+                    x:Name="playButton" Width="20" Margin="51,0,0,0" Height="24"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    PreviewMouseLeftButtonDown="playButton_MouseLeftButtonDown"
+                    MouseRightButtonDown="PlayButton_MouseRightButtonDown" Data="{DynamicResource playPath}"
+                    Stretch="Fill">
+                    <controls:PathButton.Resources>
+                        <PathGeometry x:Key="playPath" FillRule="Nonzero" Figures="M0,0 L25,30 L0,60 z"/>
+
+                        <GeometryGroup x:Key="pausePath" FillRule="Nonzero">
+                            <RectangleGeometry Rect="0,12 8,36"/>
+                            <RectangleGeometry Rect="17,12 8,36"/>
+                        </GeometryGroup>
+                    </controls:PathButton.Resources>
+                </controls:PathButton>
+                <controls:PathButton 
+                    Style="{DynamicResource PathButtonStyle}"
+                    Margin="89,0,0,0" Height="18" Width="16"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Click="Button_Click_2" Stretch="Fill"
+                    Data="M0,0 L25,30 L25,0 L31,0 L31,60 L25,60 L25,30 L0,60 z"/>
+
+                <controls:PathButton 
+                    Style="{DynamicResource PathButtonStyle}"
+                    Margin="16,0,0,0"  Height="18" Width="16"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Click="Button_Click_1" Stretch="Fill"
+                    Data="M0,0 L6,0 L6,30 L31,0 L31,60 L6,30 L6,60 L0,60 z"/>
+                <Slider x:Name="slider" Style="{DynamicResource SliderStyle}" Height="16" VerticalAlignment="Center" 
+                    Margin="5,17" Grid.Column="1" PreviewMouseLeftButtonUp="slider_MouseUp"
+                    IsMoveToPointEnabled="True" MouseMove="slider_MouseMove" ValueChanged="Slider_ValueChanged"/>
+
+                <controls:PathButton 
+                    Style="{DynamicResource PathButtonStyle}"
+                    Margin="0,0,16,0" Width="26" Height="22"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="3"
+                    Click="MaximizeButton_Click" Stretch="Fill">
+                    <controls:PathButton.Data>
+                        <GeometryGroup FillRule="Nonzero">
+                            <RectangleGeometry Rect="0,0 30,10" />
+                            <RectangleGeometry Rect="0,0 10,25" />
+                            <RectangleGeometry Rect="0,35 10,25" />
+                            <RectangleGeometry Rect="0,50 30,10" />
+                            <RectangleGeometry Rect="60,0 10,25" />
+                            <RectangleGeometry Rect="40,0 30,10" />
+                            <RectangleGeometry Rect="60,35 10,25" />
+                            <RectangleGeometry Rect="40,50 30,10" />
+                        </GeometryGroup>
+                    </controls:PathButton.Data>
+                </controls:PathButton>
+                <controls:PathButton
+                    Style="{DynamicResource PathButtonStyle}"
+                    x:Name="volButt" Margin="0,0,67,0" 
+                    Width="26" Height="50" Padding="0,14,0,14"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="3"
+                    MouseEnter="Button_MouseEnter_1" MouseLeave="Button_MouseLeave_1" 
+                    Click="Button_Click_3" Data="{DynamicResource n-2}">
+                    <controls:PathButton.Resources>
+                        <GeometryGroup x:Key="n-3" FillRule="Nonzero">
+                            <PathGeometry Figures="M15.6 6.8L10 12.7H2v9.6h8l5.6 5.9z"/>
+                            <PathGeometry Figures="M19.4 24.1c-.4 0-.8-.2-1.1-.5-.6-.6-.6-1.5 0-2.1 1.3-1.2 1.9-2.6 1.9-4s-.7-2.8-1.9-4c-.6-.6-.6-1.5 0-2.1.6-.6 1.5-.6 2.1 0 1.8 1.8 2.8 4 2.8 6.2s-1 4.4-2.8 6.2c-.2.2-.6.3-1 .3z"/>
+                            <PathGeometry Figures="M24.4 28.1c-.4 0-.8-.1-1.1-.4-.8-.6-.9-1.7-.3-2.5a12.2 12.2 0 0 0 0-15.5c-.6-.8-.5-1.9.3-2.5.8-.6 1.9-.5 2.5.3a15.7 15.7 0 0 1 0 19.8c-.4.5-.9.8-1.4.8z"/>
+                            <PathGeometry Figures="M30.4 31.6c-.4 0-.8-.1-1.1-.4-.9-.6-1.1-1.9-.5-2.8a19.3 19.3 0 0 0 0-22c-.6-.9-.4-2.2.5-2.8.9-.6 2.2-.4 2.8.5a23 23 0 0 1 0 26.5 2 2 0 0 1-1.7 1z"/>
+                        </GeometryGroup>
+
+                        <GeometryGroup x:Key="n-2" FillRule="Nonzero">
+                            <PathGeometry Figures="M15.6 6.8L10 12.7H2v9.6h8l5.6 5.9z"/>
+                            <PathGeometry Figures="M19.4 24.1c-.4 0-.8-.2-1.1-.5-.6-.6-.6-1.5 0-2.1 1.3-1.2 1.9-2.6 1.9-4s-.7-2.8-1.9-4c-.6-.6-.6-1.5 0-2.1.6-.6 1.5-.6 2.1 0 1.8 1.8 2.8 4 2.8 6.2s-1 4.4-2.8 6.2c-.2.2-.6.3-1 .3z"/>
+                            <PathGeometry Figures="M24.4 28.1c-.4 0-.8-.1-1.1-.4-.8-.6-.9-1.7-.3-2.5a12.2 12.2 0 0 0 0-15.5c-.6-.8-.5-1.9.3-2.5.8-.6 1.9-.5 2.5.3a15.7 15.7 0 0 1 0 19.8c-.4.5-.9.8-1.4.8z"/>
+                        </GeometryGroup>
+
+                        <GeometryGroup x:Key="n-1" FillRule="Nonzero">
+                            <PathGeometry Figures="M15.6 6.8L10 12.7H2v9.6h8l5.6 5.9z"/>
+                            <PathGeometry Figures="M19.4 24.1c-.4 0-.8-.2-1.1-.5-.6-.6-.6-1.5 0-2.1 1.3-1.2 1.9-2.6 1.9-4s-.7-2.8-1.9-4c-.6-.6-.6-1.5 0-2.1.6-.6 1.5-.6 2.1 0 1.8 1.8 2.8 4 2.8 6.2s-1 4.4-2.8 6.2c-.2.2-.6.3-1 .3z"/>
+                        </GeometryGroup>
+
+                        <GeometryGroup x:Key="n-0" FillRule="Nonzero">
+                            <PathGeometry Figures="M15.6 6.8L10 12.7H2v9.6h8l5.6 5.9z"/>
+                            <PathGeometry Figures="M26.9 23a2 2 0 0 1-1.4-.6l-6.9-6.9a2 2 0 0 1 0-2.8 2 2 0 0 1 2.8 0l6.9 6.9c.8.8.8 2 0 2.8a2 2 0 0 1-1.4.6z"/>
+                            <PathGeometry Figures="M20 23a2 2 0 0 1-1.4-.6 2 2 0 0 1 0-2.8l6.9-6.9a2 2 0 0 1 2.8 0c.8.8.8 2 0 2.8l-6.9 6.9a2 2 0 0 1-1.4.6z"/>
+                        </GeometryGroup>
+                    </controls:PathButton.Resources>
+                </controls:PathButton>
+
+                <TextBlock x:Name="timeBlock"  Grid.Column="2" TextAlignment="Center"
+                        Margin="10,0" VerticalAlignment="Center"
+                        Style="{DynamicResource TextBlockStyle}" Height="16" Text="00:00"/>
+
+            </Grid>
+
+            <Border x:Name="volBar" Background="{DynamicResource BarBrush}" HorizontalAlignment="Right" Width="32" 
+                Height="82" VerticalAlignment="Bottom" Margin="0,0,64,0" Visibility="Hidden"
+                MouseLeave="volBar_MouseLeave">
+                <Slider x:Name="volSlider" Orientation="Vertical" Style="{DynamicResource SliderStyle}" Maximum="1"
+                    HorizontalAlignment="Center" Width="20" Height="62" VerticalAlignment="Center" Margin="6,10"
+                    PreviewMouseLeftButtonUp="volSlider_MouseUp" IsMoveToPointEnabled="True" MouseMove="slider_MouseMove"
+                        ValueChanged="volSlider_ValueChanged"/>
+            </Border>
+
+        </Grid>
+    </Grid>
+</Window>

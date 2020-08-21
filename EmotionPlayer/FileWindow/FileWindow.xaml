@@ -1,0 +1,84 @@
+﻿<Window x:Class="EmotionPlayer.FileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EmotionPlayer"
+        xmlns:controls="clr-namespace:EmotionPlayer.Controls"
+        mc:Ignorable="d"
+        Title="Files" Height="497.213" Width="636.021"
+        Style="{DynamicResource WindowStyle}" KeyDown="Window_KeyDown" ResizeMode="NoResize">
+    <Grid Background="#1f1f1f" MouseLeftButtonDown="Grid_MouseDown">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="55"/>
+            <RowDefinition Height="316*"/>
+            <RowDefinition Height="55*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Button Style="{DynamicResource TextButtonStyle}" Background="{DynamicResource BarBrush}" Content="Cancel" Foreground="White" 
+                TextElement.FontSize="14" Click="Button_Click" Grid.Row="3"/>
+        <Button Style="{DynamicResource TextButtonStyle}" Background="{DynamicResource BarBrush}" Content="Recognize" Foreground="White" 
+                TextElement.FontSize="14" Click="Button_Click_1" Grid.Row="3" Grid.Column="1"/>
+        <ListBox x:Name="list" MouseDown="list_MouseDown" Grid.ColumnSpan="2" Margin="10" Grid.Row="1" 
+                 BorderThickness="0" ItemContainerStyle="{DynamicResource ListBoxItemStyle}" Background="#1f1f1f"/>
+        <TextBlock Grid.ColumnSpan="2" Margin="10,8,10,10" 
+                   TextWrapping="Wrap" Text="Files" FontSize="26" TextAlignment="Center" Foreground="GhostWhite"/>
+
+        <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2" 
+                    Grid.Row="2" HorizontalAlignment="Center" 
+                    VerticalAlignment="Center">
+            <controls:PathButton
+                Style="{DynamicResource PathButtonStyle}"
+                Height="25" Width="40"
+                Data="M34.6 5L30.4.8 17.5 13.7 4.6.8.4 5l17.1 17.2z"
+                Click="Button_Click_5"
+                NormalBrush="GhostWhite"/>
+
+            <controls:PathButton
+                Style="{DynamicResource PathButtonStyle}"
+                Margin="15, 0, 15, 0"
+                Click="Button_Click_3"
+                Height="40" Width="40"
+                Padding="0, 15, 0, 15"
+                NormalBrush="GhostWhite">
+                <controls:PathButton.Data>
+                    <GeometryGroup FillRule="Nonzero">
+                        <RectangleGeometry Rect="0,6 16,4"/>
+                    </GeometryGroup>
+                </controls:PathButton.Data>
+            </controls:PathButton>
+
+            <controls:PathButton
+                Style="{DynamicResource PathButtonStyle}"
+                Click="Button_Click_4" 
+                Width="33" Height="50"
+                NormalBrush="GhostWhite"
+                Data="M11.8 8.8H3l2.2 20.7h13l2.2-20.7h-8.6zm-4 18.1L6.2 11.6l1.5-.3 1.7 15.4-1.6.2zm4.7-.1h-1.4V11.4h1.4v15.4zm3.3.1l-1.5-.3L16 11.3l1.5.3-1.7 15.3zM18.9 5.4h-3.4V4.2c0-1.2-1-2.2-2.2-2.2h-3C9.1 2 8.1 3 8.1 4.2v1.2H4.7A2.7 2.7 0 0 0 2 8.1h19.6c0-1.5-1.2-2.7-2.7-2.7zm-9.5-.8c0-.8.6-1.4 1.4-1.4h2.1c.8 0 1.4.6 1.4 1.4v.8h-5v-.8z"/>
+
+            <controls:PathButton 
+                Style="{DynamicResource PathButtonStyle}"
+                Click="Button_Click_2" 
+                Margin="15, 0, 15, 0"
+                Height="40" Width="40"
+                NormalBrush="GhostWhite">
+                <controls:PathButton.Data>
+                    <GeometryGroup FillRule="Nonzero">
+                        <RectangleGeometry Rect="6,0 4,16"/>
+                        <RectangleGeometry Rect="0,6 16,4"/>
+                    </GeometryGroup>
+                </controls:PathButton.Data>
+            </controls:PathButton>
+
+            <controls:PathButton
+                Style="{DynamicResource PathButtonStyle}"
+                Click="Button_Click_6"
+                Height="25" Width="40"
+                Data="M.4 18l4.2 4.2L17.5 9.3l12.9 12.9 4.2-4.2L17.5.8z" 
+                NormalBrush="GhostWhite"/>
+        </StackPanel>
+    </Grid>
+</Window>
