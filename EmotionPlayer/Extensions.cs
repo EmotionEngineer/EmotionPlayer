@@ -33,7 +33,7 @@ namespace EmotionPlayer
     {
         public static void RemoveSelection(this ListBox list)
         {
-            list.SelectedItem = -1;
+            list.SelectedIndex = -1;
         }
         public static void TryMoveSelected(this ListBox list, int newIndex)
         {
