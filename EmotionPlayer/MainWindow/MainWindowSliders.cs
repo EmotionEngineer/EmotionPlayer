@@ -62,12 +62,24 @@ namespace EmotionPlayer
         }
         private void UpdateEmotion()
         {
-            if (fullBar.IsMouseOver) {
-             int sec = (int)Math.Round(slider.Value / 10);
-             float cur = FileWindow.data[MainWindow.listpos][sec];
-             if (cur > 0.5) currentEmotion.Source = new BitmapImage(new Uri("/Resources/happy.png", UriKind.Relative));
-             else currentEmotion.Source = new BitmapImage(new Uri("/Resources/sad.png", UriKind.Relative));
-             }
+            if (fullBar.IsMouseOver)
+            {
+                int sec = (int)Math.Round(slider.Value / 10);
+
+                try
+                {
+                    float cur = FileWindow.data[MainWindow.listpos][sec, 0];
+
+                    if (cur > 0.5)
+                        currentEmotion.Source = new BitmapImage(new Uri("/Resources/happy.png", UriKind.Relative));
+                    else
+                        currentEmotion.Source = new BitmapImage(new Uri("/Resources/sad.png", UriKind.Relative));
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
         }
 
         private void ResetEmotion()

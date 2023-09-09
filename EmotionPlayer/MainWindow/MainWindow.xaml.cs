@@ -81,20 +81,85 @@ namespace EmotionPlayer
                 int pos = 0;
                 int neg = 0;
                 string res;
-                float temp = Convert.ToSingle(Math.Round(FileWindow.data[listpos].Sum() / FileWindow.data[listpos].Length, 2));
-                if (temp <= 0.30) res = "NC-17";
-                else
-                if (temp <= 0.45) res = "R";
-                else
-                if (temp <= 0.60) res = "PG-13"; 
-                else
-                if (temp <= 0.70) res = "PG"; 
-                else
-                    res = "G";
-                for (int i = 0; i < FileWindow.data[listpos].Length; i++)
+
+                double[] classSums = new double[4];
+                double[] classMin = new double[4];
+                double[] classMax = new double[4];
+
+                // Init values
+                for (int j = 0; j < 4; j++)
                 {
-                    if (FileWindow.data[listpos][i] >= 0.5) pos++; else neg++;
+                    classMin[j] = double.MaxValue;
+                    classMax[j] = double.MinValue;
                 }
+
+                // Class values
+                for (int i = 0; i < FileWindow.data[listpos].GetLength(0); i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        // Class sum
+                        classSums[j] += FileWindow.data[listpos][i, j];
+
+                        // Min
+                        if (FileWindow.data[listpos][i, j] < classMin[j])
+                        {
+                            classMin[j] = FileWindow.data[listpos][i, j];
+                        }
+
+                        // Max
+                        if (FileWindow.data[listpos][i, j] > classMax[j])
+                        {
+                            classMax[j] = FileWindow.data[listpos][i, j];
+                        }
+
+                    }
+                    if (FileWindow.data[listpos][i, 0] >= 0.5) pos++; else neg++;
+                }
+
+                double[] classAverage = new double[4];
+
+                for (int j = 0; j < 4; j++)
+                {
+                    classAverage[j] = classSums[j] / FileWindow.data[listpos].GetLength(0);
+                }
+                double value_0 = 0.9;
+                double value_1 = 0.1;
+                double value_2 = 0.002;
+                double value_3 = 0.02;
+                if (classAverage[1] > classAverage[0] && classAverage[1] > classAverage[2] && classAverage[1] > classAverage[3])
+                {
+                    res = "PG-13";
+                }
+                else if (classAverage[0] < value_0 && classAverage[1] < value_1 && classAverage[2] < value_2 && classAverage[3] < value_3)
+                {
+                    res = "R";
+                }
+                else if (classAverage[0] > classAverage[1] && classAverage[0] > classAverage[2] && classAverage[0] > classAverage[3])
+                {
+                    res = "G";
+                }
+                else if (classAverage[2] > 0.4 || classAverage[3] > 0.4)
+                {
+                    if (classAverage[2] > classAverage[3])
+                    {
+                        res = "PRNY";
+                    }
+                    else
+                    {
+                        res = "GORE";
+                    }
+                }
+                else if (classAverage[2] + classAverage[3] > 0.5)
+                {
+                    res = "BLCK";
+                }
+                else
+                {
+                    res = "G";
+                }
+
+
                 msg = new DarkMsgBox(res, pos, neg);
                 msg.Show();
             }
@@ -112,7 +177,7 @@ namespace EmotionPlayer
         {
             if (sources.Count <= 0)
                 return;
-            
+
             listpos = listpos + 1 < sources.Count ? listpos + 1 : 0;
             mediaElement.Source = new Uri(sources[listpos]);
             Play();
@@ -165,7 +230,7 @@ namespace EmotionPlayer
 
         private void UpdateCursorLoop()
         {
-            Point lastSavedPos = new Point() ;
+            Point lastSavedPos = new Point();
             Point currPos = new Point();
             int k = 0;
 
@@ -189,7 +254,8 @@ namespace EmotionPlayer
                         k = 0;
                     }
                 }
-                else {
+                else
+                {
                     k = 0;
                     lastSavedPos = currPos;
                 }
@@ -226,7 +292,7 @@ namespace EmotionPlayer
         }
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            PlayPrev(); 
+            PlayPrev();
         }
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
@@ -252,7 +318,7 @@ namespace EmotionPlayer
 
                     break;
 
-                case (Key.Escape): SwitchWindowMax();  break;
+                case (Key.Escape): SwitchWindowMax(); break;
 
                 case (Key.OemPlus): IncVolume(0.1); break;
                 case (Key.OemMinus): IncVolume(-0.1); break;
@@ -276,7 +342,7 @@ namespace EmotionPlayer
             if (!fullBar.IsMouseOver)
                 if (Mouse.GetPosition(this).Y > 40)
                     SwitchWindowMax();
-        }   
+        }
         private void playButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             SwitchPlay();

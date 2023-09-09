@@ -16,25 +16,21 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
 
 namespace EmotionPlayer
 {
-    public partial class FileWindow : Window
+    public partial class FileWindow : System.Windows.Window
     {
         private BackgroundWorker worker = new BackgroundWorker();
         private ProgressBarWindow pbw = null;
-        public static List<float[]> data = new List<float[]>();
+        public static List<float[,]> data = new List<float[,]>();
         private int gc = 0;
-        [StructLayout(LayoutKind.Sequential)]
-        public struct progress
-        {
-            public int cur;
-            public int end;
-        };
-        [DllImport("EmotionLib.dll")]
-        public static extern IntPtr make([MarshalAs(UnmanagedType.LPStr)] string a, double fps, ref progress bar);
-        [DllImport("EmotionLib.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int clean(IntPtr ptr);
+        int numFrames = 0; // Number of frames to extract
+        IntPtr progressPtr = Marshal.AllocHGlobal(sizeof(int));
+        [DllImport("emotionLib.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void videoSentiment([In, Out] float[,,,] frames, int num_frames, [In, Out] float[,] tensor_predictions, IntPtr progress);
         private string filter;
 
         public FileWindow(IEnumerable<string> sources, string filter = "Все файлы|*.*")
@@ -78,27 +74,71 @@ namespace EmotionPlayer
         private void ProcessLogsAsynch(object sender, DoWorkEventArgs e)
         {
             float rev = 0;
-            var bar = new progress();
-            bar.cur = 0; bar.end = 100;
             string begin = DateTime.Now.ToString("h:mm:ss tt");
-            float[] result = null;
-            int arrayLength = 0;
             Dispatcher.Invoke(() =>
             {
                 new Thread(() =>
                 {
                     Thread.CurrentThread.IsBackground = true;
-                    IntPtr ptr = make(list.Items[gc].ToString(), 0, ref bar);
-                    byte[] ba = new byte[sizeof(float)];
-                    for (int i = 0; i < ba.Length; i++)
-                        ba[i] = Marshal.ReadByte(ptr, i);
-                    float v = BitConverter.ToSingle(ba, 0);
-                    arrayLength = (int)v;
-                    IntPtr start = IntPtr.Add(ptr, 4);
-                    result = new float[arrayLength];
-                    Marshal.Copy(start, result, 0, arrayLength);
-                    clean(ptr);
-                    data.Add(result);
+                    string videoFilePath = list.Items[gc].ToString(); // Video path
+                    VideoCapture videoCapture = new VideoCapture(videoFilePath);
+
+                    // OpenCV check
+                    if (!videoCapture.IsOpened())
+                    {
+                        Console.WriteLine("Open video error.");
+                        return;
+                    }
+
+                    // Получите частоту кадров видео
+                    double fps = videoCapture.Get(VideoCaptureProperties.Fps);
+
+                    // Вычислите количество кадров для извлечения
+                    numFrames = (int)(videoCapture.Get(VideoCaptureProperties.FrameCount) / fps);
+
+                    // Создайте массив для хранения кадров
+                    int targetWidth = 224;
+                    int targetHeight = 224;
+                    float[,,,] framesArray = new float[numFrames, 3, targetHeight, targetWidth];
+
+                    for (int i = 0; i < numFrames; i++)
+                    {
+                        // Извлекаем кадр из видео с учетом fps
+                        int frameIndex = (int)Math.Floor(i * fps);
+                        videoCapture.Set(VideoCaptureProperties.PosFrames, frameIndex);
+                        Mat frame = new Mat();
+                        videoCapture.Read(frame);
+
+                        if (!frame.Empty())
+                        {
+                            // Ресайзинг кадра до требуемых размеров
+                            Cv2.Resize(frame, frame, new OpenCvSharp.Size(targetWidth, targetHeight));
+
+                            // Преобразуем изображение в нужный формат
+                            for (int y = 0; y < targetHeight; y++)
+                            {
+                                for (int x = 0; x < targetWidth; x++)
+                                {
+                                    Vec3b pixelColor = frame.At<Vec3b>(y, x);
+                                    framesArray[i, 0, y, x] = pixelColor[0] / 255.0f;
+                                    framesArray[i, 1, y, x] = pixelColor[1] / 255.0f;
+                                    framesArray[i, 2, y, x] = pixelColor[2] / 255.0f;
+                                }
+                            }
+                        }
+                    }
+
+                    // Закрываем видеофайл
+                    videoCapture.Release();
+
+                    // Создаем массив для хранения результатов
+                    float[,] tensorPredictions = new float[numFrames, 4];
+
+                    // Прогресс
+                    int progressValue = 0; // Исходное значение progress
+                    Marshal.WriteInt32(progressPtr, progressValue);
+                    videoSentiment(framesArray, numFrames, tensorPredictions, progressPtr);
+                    data.Add(tensorPredictions);
                 }).Start();
 
                 pbw = new ProgressBarWindow();
@@ -108,13 +148,13 @@ namespace EmotionPlayer
             while (rev != 1)
             {
                 Thread.Sleep(100);
-                rev = (float)bar.cur / (float)bar.end;
+                rev = (float)Marshal.ReadInt32(progressPtr) / (float)numFrames;
                 (sender as BackgroundWorker).ReportProgress((int)Math.Round(rev * 100));
             }
-            
+
             Dispatcher.Invoke(() =>
             {
-                if (gc == list.Items.Count-1) Close(true);
+                if (gc == list.Items.Count - 1) Close(true);
                 gc++;
             });
         }
