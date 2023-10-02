@@ -1,23 +1,11 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
 
 namespace EmotionPlayer
 {
@@ -30,7 +18,7 @@ namespace EmotionPlayer
         int numFrames = 0; // Number of frames to extract
         IntPtr progressPtr = Marshal.AllocHGlobal(sizeof(int));
         [DllImport("emotionLib.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void videoSentiment([In, Out] float[,,,] frames, int num_frames, [In, Out] float[,] tensor_predictions, IntPtr progress);
+        public static extern void EmotionLib_videoSentiment([In, Out] float[,,,] frames, int num_frames, [In, Out] float[,] tensor_predictions, IntPtr progress);
         private string filter;
 
         public FileWindow(IEnumerable<string> sources, string filter = "Все файлы|*.*")
@@ -120,9 +108,9 @@ namespace EmotionPlayer
                                 for (int x = 0; x < targetWidth; x++)
                                 {
                                     Vec3b pixelColor = frame.At<Vec3b>(y, x);
-                                    framesArray[i, 0, y, x] = pixelColor[0] / 255.0f;
+                                    framesArray[i, 0, y, x] = pixelColor[2] / 255.0f;
                                     framesArray[i, 1, y, x] = pixelColor[1] / 255.0f;
-                                    framesArray[i, 2, y, x] = pixelColor[2] / 255.0f;
+                                    framesArray[i, 2, y, x] = pixelColor[0] / 255.0f;
                                 }
                             }
                         }
@@ -137,7 +125,7 @@ namespace EmotionPlayer
                     // Прогресс
                     int progressValue = 0; // Исходное значение progress
                     Marshal.WriteInt32(progressPtr, progressValue);
-                    videoSentiment(framesArray, numFrames, tensorPredictions, progressPtr);
+                    EmotionLib_videoSentiment(framesArray, numFrames, tensorPredictions, progressPtr);
                     data.Add(tensorPredictions);
                 }).Start();
 
