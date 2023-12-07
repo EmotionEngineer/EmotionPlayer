@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Linq;
 using System.Windows.Input;
@@ -82,83 +82,86 @@ namespace EmotionPlayer
                 int neg = 0;
                 string res;
 
-                double[] classSums = new double[4];
-                double[] classMin = new double[4];
-                double[] classMax = new double[4];
+                int numFrames = FileWindow.data[listpos].GetLength(0);
 
-                // Init values
-                for (int j = 0; j < 4; j++)
+                for (int i = 0; i < numFrames; i++)
                 {
-                    classMin[j] = double.MaxValue;
-                    classMax[j] = double.MinValue;
-                }
-
-                // Class values
-                for (int i = 0; i < FileWindow.data[listpos].GetLength(0); i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        // Class sum
-                        classSums[j] += FileWindow.data[listpos][i, j];
-
-                        // Min
-                        if (FileWindow.data[listpos][i, j] < classMin[j])
-                        {
-                            classMin[j] = FileWindow.data[listpos][i, j];
-                        }
-
-                        // Max
-                        if (FileWindow.data[listpos][i, j] > classMax[j])
-                        {
-                            classMax[j] = FileWindow.data[listpos][i, j];
-                        }
-
-                    }
                     if (FileWindow.data[listpos][i, 0] >= 0.5) pos++; else neg++;
                 }
 
-                double[] classAverage = new double[4];
+                float[] maxValues = new float[4];
+                float[] minValues = new float[4];
+                float[] averages = new float[4];
+                float[] stdDevs = new float[4];
+                int[] countOverPoint25 = new int[4];
+                int[] countOverPoint5 = new int[4];
 
                 for (int j = 0; j < 4; j++)
                 {
-                    classAverage[j] = classSums[j] / FileWindow.data[listpos].GetLength(0);
+                    float[] classProbabilities = new float[numFrames];
+                    for (int i = 0; i < numFrames; i++)
+                    {
+                        classProbabilities[i] = FileWindow.data[listpos][i, j];
+                    }
+
+                    float max = classProbabilities.Max();
+                    float min = classProbabilities.Min();
+                    float avg = classProbabilities.Average();
+                    float stdDev = (float)Math.Sqrt(classProbabilities.Average(v => Math.Pow(v - avg, 2)));
+                    int count = classProbabilities.Count(p => p > 0.25);
+                    int countTwo = classProbabilities.Count(p => p > 0.5);
+
+                    maxValues[j] = max;
+                    minValues[j] = min;
+                    averages[j] = avg;
+                    stdDevs[j] = stdDev;
+                    countOverPoint25[j] = count;
+                    countOverPoint5[j] = countTwo;
+
+                    Console.WriteLine($"Class {j + 1}: Max = {max}, Min = {min}, Average = {avg}, StdDev = {stdDev}, Count > 0.25 = {count}, Count > 0.5 = {countTwo}");
+
                 }
-                double value_0 = 0.9;
-                double value_1 = 0.1;
-                double value_2 = 0.002;
-                double value_3 = 0.02;
-                if (classAverage[1] > classAverage[0] && classAverage[1] > classAverage[2] && classAverage[1] > classAverage[3])
+
+
+                if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] <= 1.0 && minValues[2] <= 0.0)
                 {
                     res = "PG-13";
                 }
-                else if (classAverage[0] < value_0 && classAverage[1] < value_1 && classAverage[2] < value_2 && classAverage[3] < value_3)
+                else if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] > 1.0)
                 {
                     res = "R";
                 }
-                else if (classAverage[0] > classAverage[1] && classAverage[0] > classAverage[2] && classAverage[0] > classAverage[3])
+                else if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] <= 1.0 && minValues[2] > 0.0 && averages[1] > 0.263)
+                {
+                    res = "R";
+                }
+                else if (maxValues[1] <= 0.899 && averages[2] > 0.039 && minValues[3] > 0.0)
+                {
+                    res = "Porn";
+                }
+                else if (maxValues[1] > 0.899 && maxValues[0] > 1.0)
                 {
                     res = "G";
                 }
-                else if (classAverage[2] > 0.4 || classAverage[3] > 0.4)
+                else if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] <= 1.0 && minValues[2] > 0.0 && averages[1] <= 0.263)
                 {
-                    if (classAverage[2] > classAverage[3])
-                    {
-                        res = "PRNY";
-                    }
-                    else
-                    {
-                        res = "GORE";
-                    }
+                    res = "PG-13";
                 }
-                else if (classAverage[2] + classAverage[3] > 0.5)
+                else if (maxValues[1] <= 0.899 && averages[2] > 0.039 && minValues[3] <= 0.0)
                 {
-                    res = "BLCK";
+                    res = "NC-17";
                 }
-                else
+                else if (maxValues[1] <= 0.899 && averages[2] <= 0.039 && minValues[2] > 0.0)
+                {
+                    res = "Gore";
+                }
+                else if (maxValues[1] <= 0.899 && averages[2] <= 0.039 && minValues[2] <= 0.0)
                 {
                     res = "G";
                 }
-
+                else {
+                    res = "R";
+                }
 
                 msg = new DarkMsgBox(res, pos, neg);
                 msg.Show();
