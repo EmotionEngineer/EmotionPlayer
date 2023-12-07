@@ -122,42 +122,33 @@ namespace EmotionPlayer
 
                 }
 
-
-                if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] <= 1.0 && minValues[2] <= 0.0)
+                if (stdDevs[1] > 0.143 && stdDevs[2] <= 0.169 && stdDevs[1] > 0.275)
+                {
+                    res = "R";
+                }
+                else if (stdDevs[1] > 0.143 && stdDevs[2] <= 0.169 && stdDevs[1] <= 0.275)
                 {
                     res = "PG-13";
                 }
-                else if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] > 1.0)
+                else if (stdDevs[1] <= 0.143 && averages[3] <= 0.544 && averages[0] > 0.715)
                 {
-                    res = "R";
+                    res = "G";
                 }
-                else if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] <= 1.0 && minValues[2] > 0.0 && averages[1] > 0.263)
-                {
-                    res = "R";
-                }
-                else if (maxValues[1] <= 0.899 && averages[2] > 0.039 && minValues[3] > 0.0)
+                else if (stdDevs[1] <= 0.143 && averages[3] <= 0.544 && averages[0] <= 0.715)
                 {
                     res = "Porn";
                 }
-                else if (maxValues[1] > 0.899 && maxValues[0] > 1.0)
-                {
-                    res = "G";
-                }
-                else if (maxValues[1] > 0.899 && maxValues[0] <= 1.0 && maxValues[3] <= 1.0 && minValues[2] > 0.0 && averages[1] <= 0.263)
+                else if (stdDevs[1] > 0.143 && stdDevs[2] > 0.169 && stdDevs[1] > 0.263)
                 {
                     res = "PG-13";
                 }
-                else if (maxValues[1] <= 0.899 && averages[2] > 0.039 && minValues[3] <= 0.0)
+                else if (stdDevs[1] > 0.143 && stdDevs[2] > 0.169 && stdDevs[1] <= 0.263)
                 {
                     res = "NC-17";
                 }
-                else if (maxValues[1] <= 0.899 && averages[2] <= 0.039 && minValues[2] > 0.0)
+                else if (stdDevs[1] <= 0.143 && averages[3] > 0.544)
                 {
                     res = "Gore";
-                }
-                else if (maxValues[1] <= 0.899 && averages[2] <= 0.039 && minValues[2] <= 0.0)
-                {
-                    res = "G";
                 }
                 else {
                     res = "R";
