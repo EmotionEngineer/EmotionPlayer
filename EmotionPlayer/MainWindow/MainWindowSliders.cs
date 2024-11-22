@@ -68,7 +68,7 @@ namespace EmotionPlayer
 
                 try
                 {
-                    float cur = FileWindow.data[MainWindow.listpos][sec, 0];
+                    float cur = FileWindow.data[MainWindow.listpos][sec, 1];
 
                     if (cur > 0.5)
                         currentEmotion.Source = new BitmapImage(new Uri("/Resources/happy.png", UriKind.Relative));

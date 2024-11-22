@@ -28,11 +28,6 @@ namespace EmotionPlayer
         public void UpdateProgress(int percentage)
         {
             pbLoad.Value = percentage;
-
-            if (percentage == 100)
-            {
-                Close();
-            }
         }
     }
 }

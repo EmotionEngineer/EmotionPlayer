@@ -86,17 +86,17 @@ namespace EmotionPlayer
 
                 for (int i = 0; i < numFrames; i++)
                 {
-                    if (FileWindow.data[listpos][i, 0] >= 0.5) pos++; else neg++;
+                    if (FileWindow.data[listpos][i, 1] >= 0.5) pos++; else neg++;
                 }
 
-                float[] maxValues = new float[4];
-                float[] minValues = new float[4];
-                float[] averages = new float[4];
-                float[] stdDevs = new float[4];
-                int[] countOverPoint25 = new int[4];
-                int[] countOverPoint5 = new int[4];
+                float[] maxValues = new float[2];
+                float[] minValues = new float[2];
+                float[] averages = new float[2];
+                float[] stdDevs = new float[2];
+                int[] countOverPoint25 = new int[2];
+                int[] countOverPoint5 = new int[2];
 
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < 2; j++)
                 {
                     float[] classProbabilities = new float[numFrames];
                     for (int i = 0; i < numFrames; i++)
@@ -122,37 +122,15 @@ namespace EmotionPlayer
 
                 }
 
-                if (stdDevs[1] > 0.143 && stdDevs[2] <= 0.169 && stdDevs[1] > 0.275)
-                {
-                    res = "R";
-                }
-                else if (stdDevs[1] > 0.143 && stdDevs[2] <= 0.169 && stdDevs[1] <= 0.275)
-                {
-                    res = "PG-13";
-                }
-                else if (stdDevs[1] <= 0.143 && averages[3] <= 0.544 && averages[0] > 0.715)
-                {
+                if (averages[1] <= 0.30) res = "NC-17";
+                else
+                if (averages[1] <= 0.45) res = "R";
+                else
+                if (averages[1] <= 0.60) res = "PG-13";
+                else
+                if (averages[1] <= 0.70) res = "PG";
+                else
                     res = "G";
-                }
-                else if (stdDevs[1] <= 0.143 && averages[3] <= 0.544 && averages[0] <= 0.715)
-                {
-                    res = "Porn";
-                }
-                else if (stdDevs[1] > 0.143 && stdDevs[2] > 0.169 && stdDevs[1] > 0.263)
-                {
-                    res = "PG-13";
-                }
-                else if (stdDevs[1] > 0.143 && stdDevs[2] > 0.169 && stdDevs[1] <= 0.263)
-                {
-                    res = "NC-17";
-                }
-                else if (stdDevs[1] <= 0.143 && averages[3] > 0.544)
-                {
-                    res = "Gore";
-                }
-                else {
-                    res = "R";
-                }
 
                 msg = new DarkMsgBox(res, pos, neg);
                 msg.Show();
