@@ -16,8 +16,8 @@ namespace EmotionPlayer
         public static List<float[,]> data = new List<float[,]>();
         private float cpuUsagePercentage = 0.8f; // Define CPU usage
 
-        [DllImport("osentiment.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void osentiment_VideoInference([In, Out] float[,,,] frames, int num_frames, [In, Out] float[,] tensor_predictions, IntPtr progress);
+        [DllImport("positiveness", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void positiveness_VideoInference([In, Out] float[,,,] frames, int num_frames, [In, Out] float[,] tensor_predictions, IntPtr progress);
         private string filter;
 
         public FileWindow(IEnumerable<string> sources, string filter = "Все файлы|*.*")
@@ -147,7 +147,7 @@ namespace EmotionPlayer
                                      3 * targetHeight * targetWidth * sizeof(float));
                 }
 
-                osentiment_VideoInference(framesChunk, endIndex - startIndex, predictionsChunk, progressPtr);
+                positiveness_VideoInference(framesChunk, endIndex - startIndex, predictionsChunk, progressPtr);
 
                 // Copy results
                 for (int i = startIndex; i < endIndex; i++)
