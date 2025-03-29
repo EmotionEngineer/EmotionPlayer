@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.ComponentModel;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace EmotionPlayer
 {
@@ -15,6 +16,7 @@ namespace EmotionPlayer
         private bool isPlay = false;
         private bool isFullBarVisible = true;
         private DarkMsgBox msg = null;
+        private readonly List<float[,]> data = new List<float[,]>();
         public MainWindow()
         {
             InitializeComponent();
@@ -58,7 +60,7 @@ namespace EmotionPlayer
         {
             bool isWasEn = isPlay;
             mediaElement.Pause();
-            FileWindow FW = new FileWindow(sources,
+            FileWindow FW = new FileWindow(sources, data,
                 "Video|*.ASF;*.WMV;*.WM;*.ASX;*.MP4;*.AVI;*.WMD;*.WVX;*.WPL;*.MPG;*.MPEG;*.M1V;*.MPV2;*.MPA;*.MPE;*.MP2|All files|*.*");
             if (FW.ShowDialog() == true)
             {
@@ -76,17 +78,17 @@ namespace EmotionPlayer
         }
         public void ShowRateWindow()
         {
-            if (FileWindow.data.Any())
+            if (data.Any())
             {
                 int pos = 0;
                 int neg = 0;
                 string res;
 
-                int numFrames = FileWindow.data[listpos].GetLength(0);
+                int numFrames = data[listpos].GetLength(0);
 
                 for (int i = 0; i < numFrames; i++)
                 {
-                    if (FileWindow.data[listpos][i, 1] >= 0.5) pos++; else neg++;
+                    if (data[listpos][i, 1] >= 0.5) pos++; else neg++;
                 }
 
                 float[] maxValues = new float[2];
@@ -101,7 +103,7 @@ namespace EmotionPlayer
                     float[] classProbabilities = new float[numFrames];
                     for (int i = 0; i < numFrames; i++)
                     {
-                        classProbabilities[i] = FileWindow.data[listpos][i, j];
+                        classProbabilities[i] = data[listpos][i, j];
                     }
 
                     float max = classProbabilities.Max();

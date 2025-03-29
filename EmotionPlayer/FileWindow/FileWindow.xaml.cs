@@ -13,17 +13,18 @@ namespace EmotionPlayer
     public partial class FileWindow : System.Windows.Window
     {
         private ProgressBarWindow pbw = null;
-        public static List<float[,]> data = new List<float[,]>();
+        private readonly List<float[,]> data;
         private float cpuUsagePercentage = 0.8f; // Define CPU usage
 
         [DllImport("positiveness", CallingConvention = CallingConvention.Cdecl)]
         public static extern void positiveness_VideoInference([In, Out] float[,,,] frames, int num_frames, [In, Out] float[,] tensor_predictions, IntPtr progress);
         private string filter;
 
-        public FileWindow(IEnumerable<string> sources, string filter = "Все файлы|*.*")
+        public FileWindow(IEnumerable<string> sources, List<float[,]> data, string filter = "Все файлы|*.*")
         {
             InitializeComponent();
 
+            this.data = data;
             this.filter = filter;
             list.Items.AddRange(sources);
         }
