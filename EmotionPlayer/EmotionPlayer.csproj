@@ -130,9 +130,12 @@
       <DependentUpon>DarkMsgBox.xaml</DependentUpon>
       <CustomToolNamespace>EmotionPlayer</CustomToolNamespace>
     </Compile>
+    <Compile Include="InferenceContext.cs" />
+    <Compile Include="InferenceResult.cs" />
     <Compile Include="Init.cs">
       <CustomToolNamespace>EmotionPlayer</CustomToolNamespace>
     </Compile>
+    <Compile Include="Inferencer.cs" />
     <Compile Include="ProgressWindow.xaml.cs">
       <DependentUpon>ProgressWindow.xaml</DependentUpon>
       <CustomToolNamespace>EmotionPlayer</CustomToolNamespace>

@@ -12,11 +12,11 @@ namespace EmotionPlayer
 {
     public partial class MainWindow : Window
     {
-        public static int listpos = -1;
+        public int listpos = -1;
         private bool isPlay = false;
         private bool isFullBarVisible = true;
         private DarkMsgBox msg = null;
-        private readonly List<float[,]> data = new List<float[,]>();
+        private readonly List<InferenceResult> data = new List<InferenceResult>();
         public MainWindow()
         {
             InitializeComponent();
@@ -84,11 +84,11 @@ namespace EmotionPlayer
                 int neg = 0;
                 string res;
 
-                int numFrames = data[listpos].GetLength(0);
+                int numFrames = data[listpos].tensorPredictions.GetLength(0);
 
                 for (int i = 0; i < numFrames; i++)
                 {
-                    if (data[listpos][i, 1] >= 0.5) pos++; else neg++;
+                    if (data[listpos].tensorPredictions[i, 1] >= 0.5) pos++; else neg++;
                 }
 
                 float[] maxValues = new float[2];
@@ -103,7 +103,7 @@ namespace EmotionPlayer
                     float[] classProbabilities = new float[numFrames];
                     for (int i = 0; i < numFrames; i++)
                     {
-                        classProbabilities[i] = data[listpos][i, j];
+                        classProbabilities[i] = data[listpos].tensorPredictions[i, j];
                     }
 
                     float max = classProbabilities.Max();
@@ -124,15 +124,7 @@ namespace EmotionPlayer
 
                 }
 
-                if (averages[1] <= 0.30) res = "NC-17";
-                else
-                if (averages[1] <= 0.45) res = "R";
-                else
-                if (averages[1] <= 0.60) res = "PG-13";
-                else
-                if (averages[1] <= 0.70) res = "PG";
-                else
-                    res = "G";
+                res = data[listpos].interpretedResult;
 
                 msg = new DarkMsgBox(res, pos, neg);
                 msg.Show();
