@@ -16,12 +16,8 @@
                    TextAlignment="Left" Height="132" MaxHeight="274" HorizontalAlignment="Left" Width="225" Foreground="White">
             <Span FontSize="26">About</Span><LineBreak/><LineBreak/>
             <Span FontSize="16">App: <Span FontSize="18">EmotionPlayer</Span></Span><LineBreak/>
-            <Span FontSize="16">Version: <Span FontSize="18">2.0</Span></Span><LineBreak/>
-            <Span FontSize="16">Last update: <Span FontSize="18">09.09.2023</Span></Span>
-        </TextBlock>
-        <TextBlock Margin="0,201,0.4,38.4" VerticalAlignment="Center" 
-                   TextAlignment="Center" Height="31" Foreground="GhostWhite">
-            <Span FontSize="20">Telegram: @AI404</Span>
+            <Span FontSize="16">Version: <Span FontSize="18">3.0</Span></Span><LineBreak/>
+            <Span FontSize="16">Last update: <Span FontSize="18">30.03.2025</Span></Span>
         </TextBlock>
         <Button Style="{DynamicResource TextButtonStyle}" Background="#121212" Content="Close" Foreground="White" 
                 TextElement.FontSize="14" Click="Button_Click" Grid.Row="1"/>
