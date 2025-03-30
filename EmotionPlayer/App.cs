@@ -21,7 +21,8 @@ namespace EmotionPlayer
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-                new MainWindow().Show();
+            AppDomain.CurrentDomain.UnhandledException += (o, ex) => MessageBox.Show(ex.ExceptionObject.ToString(), "Unhandled exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            new MainWindow().Show();
         }
     }
 }

@@ -34,7 +34,7 @@
     </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -130,9 +130,12 @@
       <DependentUpon>DarkMsgBox.xaml</DependentUpon>
       <CustomToolNamespace>EmotionPlayer</CustomToolNamespace>
     </Compile>
+    <Compile Include="InferenceContext.cs" />
+    <Compile Include="InferenceResult.cs" />
     <Compile Include="Init.cs">
       <CustomToolNamespace>EmotionPlayer</CustomToolNamespace>
     </Compile>
+    <Compile Include="Inferencer.cs" />
     <Compile Include="ProgressWindow.xaml.cs">
       <DependentUpon>ProgressWindow.xaml</DependentUpon>
       <CustomToolNamespace>EmotionPlayer</CustomToolNamespace>
