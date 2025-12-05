@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,15 +8,14 @@ using OpenCvSharp;
 namespace EmotionPlayer
 {
     /// <summary>
-    /// Static entry point for all heavy-weight video inference logic.
+    /// Entry point for heavy-weight video inference logic.
     /// Wraps native DLLs (filter.dll, positiveness.dll, samp.dll)
-    /// and provides a higher level async API for the WPF UI.
+    /// and exposes a higher-level async API for the WPF UI.
     /// </summary>
     internal static class Inferencer
     {
         /// <summary>
-        /// Fraction of available CPU cores to use.
-        /// Used to determine number of parallel chunks.
+        /// Fraction of available CPU cores to use for parallel chunks.
         /// </summary>
         private const float CpuUsagePercentage = 0.8f;
 
@@ -257,56 +256,42 @@ namespace EmotionPlayer
                 if (numThreads <= 0)
                     numThreads = 1;
 
-                bool[] threadCompletion = new bool[numThreads];
-
-                // Run native inference on chunks in parallel.
+                // Each task processes a non-overlapping chunk of frames.
                 var inferenceTasks = Enumerable.Range(0, numThreads)
                     .Select(threadIndex => Task.Run(() =>
                     {
-                        try
+                        int startIndex = (threadIndex * numFrames) / numThreads;
+                        int endIndex = ((threadIndex + 1) * numFrames) / numThreads;
+                        int localCount = endIndex - startIndex;
+                        if (localCount <= 0)
+                            return;
+
+                        var framesChunk = new float[localCount, 3, targetHeight, targetWidth];
+                        var predictionsChunk = new float[localCount, 2];
+
+                        int frameSize = 3 * targetHeight * targetWidth * sizeof(float);
+
+                        // Copy frames for this chunk.
+                        for (int i = startIndex; i < endIndex; i++)
                         {
-                            // Balanced chunk boundaries.
-                            int startIndex = (threadIndex * numFrames) / numThreads;
-                            int endIndex = ((threadIndex + 1) * numFrames) / numThreads;
-                            int localCount = endIndex - startIndex;
-                            if (localCount <= 0)
-                                return;
-
-                            var framesChunk = new float[localCount, 3, targetHeight, targetWidth];
-                            var predictionsChunk = new float[localCount, 2];
-
-                            int frameSize = 3 * targetHeight * targetWidth * sizeof(float);
-
-                            // Copy frames for this chunk.
-                            for (int i = startIndex; i < endIndex; i++)
-                            {
-                                Buffer.BlockCopy(
-                                    framesArray, i * frameSize,
-                                    framesChunk, (i - startIndex) * frameSize,
-                                    frameSize);
-                            }
-
-                            // Native call for this chunk.
-                            positiveness_VideoInference(framesChunk, localCount, predictionsChunk, progressPtr);
-
-                            int predictionSize = 2 * sizeof(float);
-
-                            // Copy predictions back to full tensor.
-                            for (int i = startIndex; i < endIndex; i++)
-                            {
-                                Buffer.BlockCopy(
-                                    predictionsChunk, (i - startIndex) * predictionSize,
-                                    tensorPredictions, i * predictionSize,
-                                    predictionSize);
-                            }
+                            Buffer.BlockCopy(
+                                framesArray, i * frameSize,
+                                framesChunk, (i - startIndex) * frameSize,
+                                frameSize);
                         }
-                        catch (Exception ex)
+
+                        // Native call for this chunk.
+                        positiveness_VideoInference(framesChunk, localCount, predictionsChunk, progressPtr);
+
+                        int predictionSize = 2 * sizeof(float);
+
+                        // Copy predictions back to full tensor.
+                        for (int i = startIndex; i < endIndex; i++)
                         {
-                            Console.WriteLine($"Positiveness thread {threadIndex} failed: {ex}");
-                        }
-                        finally
-                        {
-                            threadCompletion[threadIndex] = true;
+                            Buffer.BlockCopy(
+                                predictionsChunk, (i - startIndex) * predictionSize,
+                                tensorPredictions, i * predictionSize,
+                                predictionSize);
                         }
                     }))
                     .ToArray();
@@ -315,8 +300,8 @@ namespace EmotionPlayer
                     ? ctx.millisecondsDelay
                     : 1000;
 
-                // Poll shared progress while any thread is still running.
-                while (!threadCompletion.All(x => x))
+                // Progress loop: while any task is still running.
+                while (!inferenceTasks.All(t => t.IsCompleted))
                 {
                     await Task.Delay(delay).ConfigureAwait(true);
 
@@ -332,9 +317,10 @@ namespace EmotionPlayer
                     ctx?.updateProgress?.Invoke(percent);
                 }
 
+                // Ensure tasks really finished.
                 await Task.WhenAll(inferenceTasks).ConfigureAwait(true);
 
-                // Ensure final 100%.
+                // Final 100%.
                 ctx?.updateProgress?.Invoke(100);
                 ctx?.setPositivenessTensorPredictions?.Invoke(tensorPredictions, frameSecInterval);
 
@@ -402,51 +388,38 @@ namespace EmotionPlayer
                 if (numThreads <= 0)
                     numThreads = 1;
 
-                bool[] threadCompletion = new bool[numThreads];
-
                 var inferenceTasks = Enumerable.Range(0, numThreads)
                     .Select(threadIndex => Task.Run(() =>
                     {
-                        try
+                        int startIndex = (threadIndex * numFrames) / numThreads;
+                        int endIndex = ((threadIndex + 1) * numFrames) / numThreads;
+                        int localCount = endIndex - startIndex;
+                        if (localCount <= 0)
+                            return;
+
+                        var framesChunk = new float[localCount, 3, targetHeight, targetWidth];
+                        var predictionsChunk = new float[localCount, 3];
+
+                        int frameSize = 3 * targetHeight * targetWidth * sizeof(float);
+
+                        for (int i = startIndex; i < endIndex; i++)
                         {
-                            int startIndex = (threadIndex * numFrames) / numThreads;
-                            int endIndex = ((threadIndex + 1) * numFrames) / numThreads;
-                            int localCount = endIndex - startIndex;
-                            if (localCount <= 0)
-                                return;
-
-                            var framesChunk = new float[localCount, 3, targetHeight, targetWidth];
-                            var predictionsChunk = new float[localCount, 3];
-
-                            int frameSize = 3 * targetHeight * targetWidth * sizeof(float);
-
-                            for (int i = startIndex; i < endIndex; i++)
-                            {
-                                Buffer.BlockCopy(
-                                    framesArray, i * frameSize,
-                                    framesChunk, (i - startIndex) * frameSize,
-                                    frameSize);
-                            }
-
-                            filter_VideoInference(framesChunk, localCount, predictionsChunk, progressPtr);
-
-                            int predictionSize = 3 * sizeof(float);
-
-                            for (int i = startIndex; i < endIndex; i++)
-                            {
-                                Buffer.BlockCopy(
-                                    predictionsChunk, (i - startIndex) * predictionSize,
-                                    tensorPredictions, i * predictionSize,
-                                    predictionSize);
-                            }
+                            Buffer.BlockCopy(
+                                framesArray, i * frameSize,
+                                framesChunk, (i - startIndex) * frameSize,
+                                frameSize);
                         }
-                        catch (Exception ex)
+
+                        filter_VideoInference(framesChunk, localCount, predictionsChunk, progressPtr);
+
+                        int predictionSize = 3 * sizeof(float);
+
+                        for (int i = startIndex; i < endIndex; i++)
                         {
-                            Console.WriteLine($"Filter thread {threadIndex} failed: {ex}");
-                        }
-                        finally
-                        {
-                            threadCompletion[threadIndex] = true;
+                            Buffer.BlockCopy(
+                                predictionsChunk, (i - startIndex) * predictionSize,
+                                tensorPredictions, i * predictionSize,
+                                predictionSize);
                         }
                     }))
                     .ToArray();
@@ -455,7 +428,7 @@ namespace EmotionPlayer
                     ? ctx.millisecondsDelay
                     : 1000;
 
-                while (!threadCompletion.All(x => x))
+                while (!inferenceTasks.All(t => t.IsCompleted))
                 {
                     await Task.Delay(delay).ConfigureAwait(true);
 
