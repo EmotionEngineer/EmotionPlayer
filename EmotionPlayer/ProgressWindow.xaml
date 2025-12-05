@@ -11,20 +11,30 @@
         <Grid.RowDefinitions>
             <RowDefinition/>
         </Grid.RowDefinitions>
+
+        <!-- Determinate progress bar, value is updated from code-behind -->
         <ProgressBar Grid.Column="0" Grid.Row="0"
                      Name="pbLoad"
                      Visibility="Visible"
-                     IsIndeterminate="True"
+                     IsIndeterminate="False"
                      Background="White"
-                     Margin="12, 4" Height="24"
-                     Value="0" Minimum="0" Maximum="100" Foreground="Orange"
-                     />
+                     Margin="12,4"
+                     Height="24"
+                     Value="0"
+                     Minimum="0"
+                     Maximum="100"
+                     Foreground="Orange"/>
+
         <StackPanel Grid.Column="0" Grid.Row="0"
                     Orientation="Horizontal"
-                    HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Name="tbProgress" Visibility="Visible"
-                       Text="{Binding ElementName=pbLoad, Path=Value, StringFormat={}{0:0}%}" 
-                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+            <TextBlock Name="tbProgress"
+                       Visibility="Visible"
+                       Text="{Binding ElementName=pbLoad, Path=Value, StringFormat={}{0:0}%}"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
         </StackPanel>
     </Grid>
 </Window>

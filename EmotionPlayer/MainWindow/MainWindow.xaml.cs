@@ -241,7 +241,18 @@ namespace EmotionPlayer
         }
         private void mediaElement_MediaOpened(object sender, RoutedEventArgs e)
         {
-            slider.Maximum = mediaElement.NaturalDuration.TimeSpan.TotalMilliseconds / 100;
+            // Some media sources (or early states) report Automatic duration.
+            // In that case NaturalDuration.HasTimeSpan is false and accessing TimeSpan throws.
+            if (mediaElement.NaturalDuration.HasTimeSpan)
+            {
+                slider.Maximum = mediaElement.NaturalDuration.TimeSpan.TotalMilliseconds / 100.0;
+            }
+            else
+            {
+                // Fallback: no known duration; keep slider disabled or at 0.
+                slider.Maximum = 0;
+            }
+
             slider.Value = 0;
         }
         private void MaximizeButton_Click(object sender, RoutedEventArgs e)

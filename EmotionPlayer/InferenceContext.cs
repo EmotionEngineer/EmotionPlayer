@@ -1,16 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EmotionPlayer
 {
+    /// <summary>
+    /// Context object used to connect the inference backend with the UI.
+    /// </summary>
     internal class InferenceContext
     {
+        /// <summary>
+        /// Delay in milliseconds between progress polling iterations.
+        /// </summary>
         internal int millisecondsDelay;
+
+        /// <summary>
+        /// Callback to report progress in [0..100].
+        /// </summary>
         internal Action<int> updateProgress;
+
+        /// <summary>
+        /// Callback to set interpreted final result (e.g. MPAA rating or "Unsafe").
+        /// </summary>
         internal Action<string> setInterpretedResult;
-        internal Action<float[,]> setPositivenessTensorPredictions;
+
+        /// <summary>
+        /// Callback to provide raw positiveness predictions tensor and
+        /// the sampling interval in seconds between frames used for inference.
+        /// </summary>
+        internal Action<float[,], int> setPositivenessTensorPredictions;
     }
 }
