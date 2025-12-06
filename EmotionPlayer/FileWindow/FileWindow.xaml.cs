@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -24,7 +25,6 @@ namespace EmotionPlayer
             this.data = data ?? throw new ArgumentNullException(nameof(data));
             this.filter = filter ?? "Все файлы|*.*";
 
-            // Add initial sources (if any) to the list box.
             list.Items.AddRange(sources ?? Enumerable.Empty<string>());
         }
 
@@ -54,6 +54,8 @@ namespace EmotionPlayer
                     continue;
 
                 pbw = new ProgressBarWindow();
+                string fileName = Path.GetFileName(path);
+                pbw.SetVideoName(fileName, path);
                 pbw.Show();
 
                 await ProcessVideoAsync(path);
@@ -78,7 +80,12 @@ namespace EmotionPlayer
                 millisecondsDelay = 1000,
 
                 // Progress is reported to the dedicated progress window.
-                updateProgress = percentage => pbw?.UpdateProgress(percentage)
+                // stage: "Positiveness" / "Filter"
+                // videoName: base name (without extension).
+                updateProgress = (percent, stage, videoName) =>
+                {
+                    pbw?.UpdateProgress(percent, stage, videoName);
+                }
             };
 
             var result = new InferenceResult();

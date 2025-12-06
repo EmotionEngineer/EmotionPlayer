@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -232,10 +232,12 @@ namespace EmotionPlayer
             int numFrames,
             InferenceContext ctx)
         {
+            const string stageName = "Positiveness";
+
             if (framesArray == null || numFrames <= 0)
             {
                 ctx?.setPositivenessTensorPredictions?.Invoke(new float[0, 2], frameSecInterval);
-                ctx?.updateProgress?.Invoke(100);
+                ctx?.updateProgress?.Invoke(100, stageName, videoName);
                 return;
             }
 
@@ -314,14 +316,14 @@ namespace EmotionPlayer
                     if (ratio > 1) ratio = 1;
 
                     int percent = (int)Math.Round(ratio * 100);
-                    ctx?.updateProgress?.Invoke(percent);
+                    ctx?.updateProgress?.Invoke(percent, stageName, videoName);
                 }
 
-                // Ensure tasks really finished.
+                // Ensure tasks completed.
                 await Task.WhenAll(inferenceTasks).ConfigureAwait(true);
 
                 // Final 100%.
-                ctx?.updateProgress?.Invoke(100);
+                ctx?.updateProgress?.Invoke(100, stageName, videoName);
                 ctx?.setPositivenessTensorPredictions?.Invoke(tensorPredictions, frameSecInterval);
 
                 // Serialize results to *.epp
@@ -365,9 +367,11 @@ namespace EmotionPlayer
             int numFrames,
             InferenceContext ctx)
         {
+            const string stageName = "Filter";
+
             if (framesArray == null || numFrames <= 0)
             {
-                ctx?.updateProgress?.Invoke(100);
+                ctx?.updateProgress?.Invoke(100, stageName, videoName);
                 return;
             }
 
@@ -441,7 +445,7 @@ namespace EmotionPlayer
                     if (ratio > 1) ratio = 1;
 
                     int percent = (int)Math.Round(ratio * 100);
-                    ctx?.updateProgress?.Invoke(percent);
+                    ctx?.updateProgress?.Invoke(percent, stageName, videoName);
                 }
 
                 await Task.WhenAll(inferenceTasks).ConfigureAwait(true);
@@ -457,7 +461,7 @@ namespace EmotionPlayer
                     }
                 }
 
-                ctx?.updateProgress?.Invoke(100);
+                ctx?.updateProgress?.Invoke(100, stageName, videoName);
 
                 // Serialize results to *.efp
                 string directoryPath = "Output";

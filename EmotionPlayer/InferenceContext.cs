@@ -13,9 +13,11 @@ namespace EmotionPlayer
         internal int millisecondsDelay;
 
         /// <summary>
-        /// Callback to report progress in [0..100].
+        /// Callback to report progress: (percentage, stage, videoName).
+        /// stage: e.g. "Positiveness", "Filter".
+        /// videoName: typically the file name without extension.
         /// </summary>
-        internal Action<int> updateProgress;
+        internal Action<int, string, string> updateProgress;
 
         /// <summary>
         /// Callback to set interpreted final result (e.g. MPAA rating or "Unsafe").

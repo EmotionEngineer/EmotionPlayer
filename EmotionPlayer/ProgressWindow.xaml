@@ -5,36 +5,54 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EmotionPlayer"
         mc:Ignorable="d"
-        Title="Recognition progress" Height="90" Width="400"
+        Title="Recognition progress"
+        Height="130"
+        Width="440"
         Style="{DynamicResource WindowStyle}">
-    <Grid Background="Black" MouseLeftButtonDown="Progress_MouseDown">
+    <Grid Background="#101010"
+          Margin="8"
+          MouseLeftButtonDown="Progress_MouseDown">
+
         <Grid.RowDefinitions>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Determinate progress bar, value is updated from code-behind -->
-        <ProgressBar Grid.Column="0" Grid.Row="0"
-                     Name="pbLoad"
-                     Visibility="Visible"
-                     IsIndeterminate="False"
-                     Background="White"
-                     Margin="12,4"
-                     Height="24"
-                     Value="0"
-                     Minimum="0"
-                     Maximum="100"
-                     Foreground="Orange"/>
+        <!-- Video name (truncated with ellipsis if too long) -->
+        <TextBlock x:Name="tbVideo"
+                   Grid.Row="0"
+                   Margin="0,0,0,4"
+                   Foreground="White"
+                   FontSize="13"
+                   TextTrimming="CharacterEllipsis"
+                   ToolTipService.ShowDuration="60000"/>
 
-        <StackPanel Grid.Column="0" Grid.Row="0"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-            <TextBlock Name="tbProgress"
-                       Visibility="Visible"
-                       Text="{Binding ElementName=pbLoad, Path=Value, StringFormat={}{0:0}%}"
+        <!-- Processing stage: Positiveness / Filter -->
+        <TextBlock x:Name="tbStage"
+                   Grid.Row="1"
+                   Margin="0,0,0,8"
+                   Foreground="Gray"
+                   FontSize="12"/>
+
+        <!-- Progress bar with centered percentage text -->
+        <Grid Grid.Row="2">
+            <ProgressBar x:Name="pbLoad"
+                         Height="22"
+                         Minimum="0"
+                         Maximum="100"
+                         Value="0"
+                         Background="#303030"
+                         Foreground="Orange"
+                         BorderBrush="#555555"
+                         BorderThickness="1"/>
+
+            <TextBlock x:Name="tbPercent"
                        Foreground="White"
+                       FontSize="12"
+                       FontWeight="Bold"
                        HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-        </StackPanel>
+                       VerticalAlignment="Center"/>
+        </Grid>
     </Grid>
 </Window>
