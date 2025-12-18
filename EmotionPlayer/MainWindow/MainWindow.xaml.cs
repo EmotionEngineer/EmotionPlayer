@@ -95,6 +95,7 @@ namespace EmotionPlayer
 
             int pos = 0;
             int neg = 0;
+            string res;
 
             int numFrames = r.tensorPredictions.GetLength(0);
 
@@ -135,7 +136,9 @@ namespace EmotionPlayer
                 Console.WriteLine($"Class {j + 1}: Max = {max}, Min = {min}, Average = {avg}, StdDev = {stdDev}, Count > 0.25 = {count}, Count > 0.5 = {countTwo}");
             }
 
-            msg = new DarkMsgBox(r.interpretedResult, pos, neg);
+            res = r.interpretedResult;
+
+            msg = new DarkMsgBox(res, pos, neg);
             msg.Show();
         }
 
@@ -250,12 +253,15 @@ namespace EmotionPlayer
         }
         private void mediaElement_MediaOpened(object sender, RoutedEventArgs e)
         {
+            // Some media sources (or early states) report Automatic duration.
+            // In that case NaturalDuration.HasTimeSpan is false and accessing TimeSpan throws.
             if (mediaElement.NaturalDuration.HasTimeSpan)
             {
                 slider.Maximum = mediaElement.NaturalDuration.TimeSpan.TotalMilliseconds / 100.0;
             }
             else
             {
+                // Fallback: no known duration; keep slider disabled or at 0.
                 slider.Maximum = 0;
             }
 
