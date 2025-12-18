@@ -7,16 +7,8 @@ using OpenCvSharp;
 
 namespace EmotionPlayer
 {
-    /// <summary>
-    /// Entry point for heavy-weight video inference logic.
-    /// Wraps native DLLs (filter.dll, positiveness.dll, samp.dll)
-    /// and exposes a higher-level async API for the WPF UI.
-    /// </summary>
     internal static class Inferencer
     {
-        /// <summary>
-        /// Fraction of available CPU cores to use for parallel chunks.
-        /// </summary>
         private const float CpuUsagePercentage = 0.8f;
 
         #region Native functions
@@ -42,10 +34,6 @@ namespace EmotionPlayer
 
         #region Helpers
 
-        /// <summary>
-        /// Returns true if the given frame is mostly dark based on average brightness.
-        /// Expects frames normalized to [0..1].
-        /// </summary>
         private static bool IsFrameMostlyDark(float[,,,] frames, int frameIndex = 0, float threshold = 0.02f)
         {
             int width = frames.GetLength(3);
@@ -68,34 +56,25 @@ namespace EmotionPlayer
             return averageBrightness < threshold;
         }
 
-        /// <summary>
-        /// Choose sampling interval (in seconds) based on total video duration.
-        /// Longer videos are sampled more sparsely to keep total frame count reasonable.
-        /// </summary>
         private static int GetFrameSecInterval(double totalSeconds)
         {
             const int secPerMinute = 60;
             const int secPerHour = secPerMinute * 60;
 
             if (totalSeconds <= 20 * secPerMinute)
-                return 1;   // Up to 20 minutes - every second
+                return 1;
             if (totalSeconds <= 1 * secPerHour)
-                return 2;   // 20 minutes to 1 hour - every 2 seconds
+                return 2;
             if (totalSeconds <= 1.8 * secPerHour)
-                return 3;   // 1 to 1.8 hours - every 3 seconds
+                return 3;
             if (totalSeconds <= 2.1 * secPerHour)
-                return 4;   // 1.8 to 2.1 hours - every 4 seconds
+                return 4;
             if (totalSeconds <= 3 * secPerHour)
-                return 5;   // 2.1 to 3 hours - every 5 seconds
+                return 5;
 
-            return 6;       // More than 3 hours - every 6 seconds
+            return 6;
         }
 
-        /// <summary>
-        /// Loads and preprocesses video frames into a 4D tensor:
-        /// [numFrames, 3, targetHeight, targetWidth].
-        /// Handles "weird" FPS values and very short videos robustly.
-        /// </summary>
         private static float[,,,] LoadVideoFrames(
             string videoFilePath,
             out int numFrames,
@@ -126,7 +105,6 @@ namespace EmotionPlayer
                 double fps = videoCapture.Get(VideoCaptureProperties.Fps);
                 if (fps <= 0 || double.IsNaN(fps) || double.IsInfinity(fps))
                 {
-                    // Fallback FPS for malformed containers.
                     fps = 30;
                 }
 
@@ -141,14 +119,12 @@ namespace EmotionPlayer
                 if (frameInterval <= 0)
                     frameInterval = 1;
 
-                // Number of samples across the timeline – ceil to ensure at least one frame.
                 numFrames = (int)Math.Ceiling(totalSeconds / frameSecInterval);
                 if (numFrames <= 0)
                     numFrames = 1;
 
                 var framesArray = new float[numFrames, 3, targetHeight, targetWidth];
 
-                // BGR mean values (ImageNet).
                 float[] meanValues = { 104.00698793f, 116.66876762f, 122.67891434f };
 
                 for (int i = 0; i < numFrames; i++)
@@ -178,14 +154,12 @@ namespace EmotionPlayer
                                 {
                                     if (isRgbOrder)
                                     {
-                                        // RGB order with ImageNet mean subtraction.
                                         framesArray[i, 0, y, x] = r - meanValues[2];
                                         framesArray[i, 1, y, x] = g - meanValues[1];
                                         framesArray[i, 2, y, x] = b - meanValues[0];
                                     }
                                     else
                                     {
-                                        // BGR order with ImageNet mean subtraction.
                                         framesArray[i, 0, y, x] = b - meanValues[0];
                                         framesArray[i, 1, y, x] = g - meanValues[1];
                                         framesArray[i, 2, y, x] = r - meanValues[2];
@@ -195,14 +169,12 @@ namespace EmotionPlayer
                                 {
                                     if (isRgbOrder)
                                     {
-                                        // RGB min-max normalization to [0..1].
                                         framesArray[i, 0, y, x] = r / 255.0f;
                                         framesArray[i, 1, y, x] = g / 255.0f;
                                         framesArray[i, 2, y, x] = b / 255.0f;
                                     }
                                     else
                                     {
-                                        // BGR min-max normalization to [0..1].
                                         framesArray[i, 0, y, x] = b / 255.0f;
                                         framesArray[i, 1, y, x] = g / 255.0f;
                                         framesArray[i, 2, y, x] = r / 255.0f;
@@ -219,12 +191,8 @@ namespace EmotionPlayer
 
         #endregion
 
-        #region Model runners (parallel chunks + shared progress)
+        #region Model runners
 
-        /// <summary>
-        /// Runs the positiveness model on a preloaded 4D tensor of frames in parallel chunks.
-        /// Produces *.epp file and passes the tensor back via <see cref="InferenceContext"/>.
-        /// </summary>
         private static async Task ProcessVideoPositivenessAsync(
             string videoName,
             int frameSecInterval,
@@ -258,7 +226,6 @@ namespace EmotionPlayer
                 if (numThreads <= 0)
                     numThreads = 1;
 
-                // Each task processes a non-overlapping chunk of frames.
                 var inferenceTasks = Enumerable.Range(0, numThreads)
                     .Select(threadIndex => Task.Run(() =>
                     {
@@ -273,7 +240,6 @@ namespace EmotionPlayer
 
                         int frameSize = 3 * targetHeight * targetWidth * sizeof(float);
 
-                        // Copy frames for this chunk.
                         for (int i = startIndex; i < endIndex; i++)
                         {
                             Buffer.BlockCopy(
@@ -282,12 +248,10 @@ namespace EmotionPlayer
                                 frameSize);
                         }
 
-                        // Native call for this chunk.
                         positiveness_VideoInference(framesChunk, localCount, predictionsChunk, progressPtr);
 
                         int predictionSize = 2 * sizeof(float);
 
-                        // Copy predictions back to full tensor.
                         for (int i = startIndex; i < endIndex; i++)
                         {
                             Buffer.BlockCopy(
@@ -302,7 +266,6 @@ namespace EmotionPlayer
                     ? ctx.millisecondsDelay
                     : 1000;
 
-                // Progress loop: while any task is still running.
                 while (!inferenceTasks.All(t => t.IsCompleted))
                 {
                     await Task.Delay(delay).ConfigureAwait(true);
@@ -319,14 +282,11 @@ namespace EmotionPlayer
                     ctx?.updateProgress?.Invoke(percent, stageName, videoName);
                 }
 
-                // Ensure tasks completed.
                 await Task.WhenAll(inferenceTasks).ConfigureAwait(true);
 
-                // Final 100%.
                 ctx?.updateProgress?.Invoke(100, stageName, videoName);
                 ctx?.setPositivenessTensorPredictions?.Invoke(tensorPredictions, frameSecInterval);
 
-                // Serialize results to *.epp
                 string directoryPath = "Output";
                 Directory.CreateDirectory(directoryPath);
 
@@ -356,10 +316,6 @@ namespace EmotionPlayer
             }
         }
 
-        /// <summary>
-        /// Runs the filter model on a preloaded 4D tensor of frames in parallel chunks.
-        /// Produces *.efp file. Dark frames are marked with -1 in all channels.
-        /// </summary>
         private static async Task ProcessVideoFilterAsync(
             string videoName,
             int frameSecInterval,
@@ -450,7 +406,6 @@ namespace EmotionPlayer
 
                 await Task.WhenAll(inferenceTasks).ConfigureAwait(true);
 
-                // Mark dark frames with -1.
                 for (int i = 0; i < numFrames; i++)
                 {
                     if (IsFrameMostlyDark(framesArray, i))
@@ -463,7 +418,6 @@ namespace EmotionPlayer
 
                 ctx?.updateProgress?.Invoke(100, stageName, videoName);
 
-                // Serialize results to *.efp
                 string directoryPath = "Output";
                 Directory.CreateDirectory(directoryPath);
 
@@ -509,11 +463,6 @@ namespace EmotionPlayer
             return "R";
         }
 
-        /// <summary>
-        /// Reads *.epp and *.efp files produced by the models
-        /// and runs SAMP classifier. Result is propagated through
-        /// <see cref="InferenceContext.setInterpretedResult"/>.
-        /// </summary>
         public static void ClassifyVideo(string videoName, InferenceContext ctx)
         {
             string eppPath = Path.Combine("Output", $"{videoName}.epp");
@@ -555,12 +504,6 @@ namespace EmotionPlayer
 
         #region Public entry point
 
-        /// <summary>
-        /// High-level async entry point used by the WPF UI.
-        /// Performs two passes over the video:
-        /// 1) positiveness model (EPP + raw tensor),
-        /// 2) filter model (EFP) and SAMP classification.
-        /// </summary>
         public static async Task Main(string videoFilePath, InferenceContext ctx)
         {
             if (string.IsNullOrWhiteSpace(videoFilePath))
@@ -568,7 +511,8 @@ namespace EmotionPlayer
 
             string videoName = Path.GetFileNameWithoutExtension(videoFilePath);
 
-            // 1. Positiveness pass.
+            ctx?.setInterpretedResult?.Invoke("N/A");
+
             int numFrames;
             int frameSecInterval;
 
@@ -582,7 +526,12 @@ namespace EmotionPlayer
                     isRgbOrder: false,
                     useImageNetMean: true);
 
-            if (framesArrayPositiveness != null)
+            if (framesArrayPositiveness == null || numFrames <= 0)
+            {
+                ctx?.setPositivenessTensorPredictions?.Invoke(new float[0, 2], frameSecInterval);
+                ctx?.updateProgress?.Invoke(100, "Positiveness", videoName);
+            }
+            else
             {
                 await ProcessVideoPositivenessAsync(
                     videoName,
@@ -594,7 +543,6 @@ namespace EmotionPlayer
 
             framesArrayPositiveness = null;
 
-            // 2. Filter pass + SAMP classification.
             float[,,,] framesArrayFilter =
                 LoadVideoFrames(
                     videoFilePath,
@@ -605,7 +553,11 @@ namespace EmotionPlayer
                     isRgbOrder: true,
                     useImageNetMean: false);
 
-            if (framesArrayFilter != null)
+            if (framesArrayFilter == null || numFrames <= 0)
+            {
+                ctx?.updateProgress?.Invoke(100, "Filter", videoName);
+            }
+            else
             {
                 await ProcessVideoFilterAsync(
                     videoName,

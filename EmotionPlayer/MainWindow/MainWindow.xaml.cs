@@ -76,60 +76,69 @@ namespace EmotionPlayer
                 if (isWasEn)
                 mediaElement.Play();
         }
+
         public void ShowRateWindow()
         {
-            if (data.Any())
+            if (listpos < 0 || listpos >= data.Count)
+                return;
+
+            var r = data[listpos];
+            if (r == null)
+                return;
+
+            if (r.tensorPredictions == null || r.tensorPredictions.Length == 0)
             {
-                int pos = 0;
-                int neg = 0;
-                string res;
+                msg = new DarkMsgBox(r.interpretedResult, 0, 0);
+                msg.Show();
+                return;
+            }
 
-                int numFrames = data[listpos].tensorPredictions.GetLength(0);
+            int pos = 0;
+            int neg = 0;
 
+            int numFrames = r.tensorPredictions.GetLength(0);
+
+            for (int i = 0; i < numFrames; i++)
+            {
+                if (r.tensorPredictions[i, 1] >= 0.5) pos++; else neg++;
+            }
+
+            float[] maxValues = new float[2];
+            float[] minValues = new float[2];
+            float[] averages = new float[2];
+            float[] stdDevs = new float[2];
+            int[] countOverPoint25 = new int[2];
+            int[] countOverPoint5 = new int[2];
+
+            for (int j = 0; j < 2; j++)
+            {
+                float[] classProbabilities = new float[numFrames];
                 for (int i = 0; i < numFrames; i++)
                 {
-                    if (data[listpos].tensorPredictions[i, 1] >= 0.5) pos++; else neg++;
+                    classProbabilities[i] = r.tensorPredictions[i, j];
                 }
 
-                float[] maxValues = new float[2];
-                float[] minValues = new float[2];
-                float[] averages = new float[2];
-                float[] stdDevs = new float[2];
-                int[] countOverPoint25 = new int[2];
-                int[] countOverPoint5 = new int[2];
+                float max = classProbabilities.Max();
+                float min = classProbabilities.Min();
+                float avg = classProbabilities.Average();
+                float stdDev = (float)Math.Sqrt(classProbabilities.Average(v => Math.Pow(v - avg, 2)));
+                int count = classProbabilities.Count(p => p > 0.25);
+                int countTwo = classProbabilities.Count(p => p > 0.5);
 
-                for (int j = 0; j < 2; j++)
-                {
-                    float[] classProbabilities = new float[numFrames];
-                    for (int i = 0; i < numFrames; i++)
-                    {
-                        classProbabilities[i] = data[listpos].tensorPredictions[i, j];
-                    }
+                maxValues[j] = max;
+                minValues[j] = min;
+                averages[j] = avg;
+                stdDevs[j] = stdDev;
+                countOverPoint25[j] = count;
+                countOverPoint5[j] = countTwo;
 
-                    float max = classProbabilities.Max();
-                    float min = classProbabilities.Min();
-                    float avg = classProbabilities.Average();
-                    float stdDev = (float)Math.Sqrt(classProbabilities.Average(v => Math.Pow(v - avg, 2)));
-                    int count = classProbabilities.Count(p => p > 0.25);
-                    int countTwo = classProbabilities.Count(p => p > 0.5);
-
-                    maxValues[j] = max;
-                    minValues[j] = min;
-                    averages[j] = avg;
-                    stdDevs[j] = stdDev;
-                    countOverPoint25[j] = count;
-                    countOverPoint5[j] = countTwo;
-
-                    Console.WriteLine($"Class {j + 1}: Max = {max}, Min = {min}, Average = {avg}, StdDev = {stdDev}, Count > 0.25 = {count}, Count > 0.5 = {countTwo}");
-
-                }
-
-                res = data[listpos].interpretedResult;
-
-                msg = new DarkMsgBox(res, pos, neg);
-                msg.Show();
+                Console.WriteLine($"Class {j + 1}: Max = {max}, Min = {min}, Average = {avg}, StdDev = {stdDev}, Count > 0.25 = {count}, Count > 0.5 = {countTwo}");
             }
+
+            msg = new DarkMsgBox(r.interpretedResult, pos, neg);
+            msg.Show();
         }
+
         public void PlayPrev()
         {
             if (sources.Count <= 0)
@@ -241,15 +250,12 @@ namespace EmotionPlayer
         }
         private void mediaElement_MediaOpened(object sender, RoutedEventArgs e)
         {
-            // Some media sources (or early states) report Automatic duration.
-            // In that case NaturalDuration.HasTimeSpan is false and accessing TimeSpan throws.
             if (mediaElement.NaturalDuration.HasTimeSpan)
             {
                 slider.Maximum = mediaElement.NaturalDuration.TimeSpan.TotalMilliseconds / 100.0;
             }
             else
             {
-                // Fallback: no known duration; keep slider disabled or at 0.
                 slider.Maximum = 0;
             }
 
